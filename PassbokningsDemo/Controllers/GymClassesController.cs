@@ -2,6 +2,8 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
@@ -13,10 +15,12 @@ namespace PassbokningsDemo.Controllers
     public class GymClassesController : Controller
     {
         private readonly ApplicationDbContext _context;
+        private readonly UserManager<ApplicationUser> _userManager;
 
-        public GymClassesController(ApplicationDbContext context)
+        public GymClassesController(ApplicationDbContext context, UserManager<ApplicationUser> userManager )
         {
             _context = context;
+            _userManager = userManager;
         }
 
         // GET: GymClasses
@@ -28,19 +32,17 @@ namespace PassbokningsDemo.Controllers
         // GET: GymClasses/Details/5
         public async Task<IActionResult> Details(int? id)
         {
-            if (id == null)
-            {
-                return NotFound();
-            }
+            if (id == null) return RedirectToAction(nameof(Index));
 
-            var gymClass = await _context.GymClasses
-                .FirstOrDefaultAsync(m => m.Id == id);
-            if (gymClass == null)
-            {
-                return NotFound();
-            }
+            var gymClassWithAttendees = await _context.GymClasses
+                .Where(g => g.Id == id)
+                .Include(c => c.AttendingMembers)
+                .ThenInclude(u => u.User).FirstOrDefaultAsync();
 
-            return View(gymClass);
+            if (gymClassWithAttendees == null)
+                return RedirectToAction(nameof(Index));
+
+            return View(gymClassWithAttendees);
         }
 
         // GET: GymClasses/Create
@@ -56,6 +58,7 @@ namespace PassbokningsDemo.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Create([Bind("Id,Name,StartTime,Duration,Description")] GymClass gymClass)
         {
+            
             if (ModelState.IsValid)
             {
                 _context.Add(gymClass);
@@ -152,6 +155,35 @@ namespace PassbokningsDemo.Controllers
         private bool GymClassExists(int id)
         {
             return _context.GymClasses.Any(e => e.Id == id);
+        }
+
+        [Authorize]
+        public async Task<IActionResult> BookingToggle(int? id)
+        {
+            if (id == null)
+                return NotFound();
+
+            var userId = _userManager.GetUserId(User);
+
+            var attending = await _context.ApplicationUserGymClasses.FindAsync(userId, id);
+
+            if(attending == null)
+            {
+                var booking = new ApplicationUserGymClass
+                {
+                    ApplicationUserId = userId,
+                    GymClassId = (int)id
+                };
+                _context.ApplicationUserGymClasses.Add(booking);
+            }
+            else
+            {
+                _context.Remove(attending);
+            }
+
+            await _context.SaveChangesAsync(); 
+
+            return RedirectToAction(nameof(Index));
         }
     }
 }
