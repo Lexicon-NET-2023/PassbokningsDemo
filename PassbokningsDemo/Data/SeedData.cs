@@ -20,11 +20,11 @@ namespace PassbokningsDemo.Data
             userManager = services.GetRequiredService<UserManager<ApplicationUser>>();
 
             var roleNames = new[] { "User", "Admin" };
-            var adminEmail = "admin@admin.com";
+            var adminEmail = "admin@gymbokning.se";
 
             await AddRolesAsync(roleNames);
 
-            var admin = await AddAccountAsync(adminEmail, "P@55w.rd");
+            var admin = await AddAccountAsync(adminEmail,"Admin", "Adminsson", "P@55w.rd");
 
             await AddUserToRoleAsync(admin, "Admin");
 
@@ -51,7 +51,7 @@ namespace PassbokningsDemo.Data
             }
         }
 
-        private static async Task<ApplicationUser> AddAccountAsync(string accountEmail, string password)
+        private static async Task<ApplicationUser> AddAccountAsync(string accountEmail, string fName, string lName, string password)
         {
             var found = await userManager.FindByEmailAsync(accountEmail);
 
@@ -61,7 +61,10 @@ namespace PassbokningsDemo.Data
             {
                 UserName = accountEmail,
                 Email = accountEmail,
-                EmailConfirmed = true
+                EmailConfirmed = true,
+                FirstName = fName,
+                LastName = lName,
+                TimeOfRegistration = DateTime.Now
             };
 
             var result = await userManager.CreateAsync(user, password);
