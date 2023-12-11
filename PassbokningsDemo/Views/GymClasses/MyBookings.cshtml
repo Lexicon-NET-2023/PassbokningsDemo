@@ -1,0 +1,30 @@
+﻿@model IndexViewModel
+
+@{
+    ViewData["Title"] = "Index";
+}
+
+<h1>My bookings</h1>
+
+<table class="table">
+    <thead>
+        <tr>
+            <th>
+                @Html.DisplayNameFor(model => model.GymClasses.FirstOrDefault()!.Name)
+            </th>
+            <th>
+                @Html.DisplayNameFor(model => model.GymClasses.FirstOrDefault()!.StartTime)
+            </th>
+            <th>
+                @Html.DisplayNameFor(model => model.GymClasses.FirstOrDefault()!.Duration)
+            </th>
+            <th>
+                @Html.DisplayNameFor(model => model.GymClasses.FirstOrDefault()!.Description)
+            </th>
+            <th></th>
+        </tr>
+    </thead>
+    <tbody>
+        <partial name="_MyBookingPartial" model="@Model.GymClasses" />
+    </tbody>
+</table>
