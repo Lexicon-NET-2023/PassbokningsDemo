@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using AutoMapper;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
@@ -9,17 +10,20 @@ using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
 using PassbokningsDemo.Data;
 using PassbokningsDemo.Models;
+using PassbokningsDemo.Models.ViewModels;
 
 namespace PassbokningsDemo.Controllers
 {
     [Authorize]
     public class GymClassesController : Controller
     {
+        private readonly IMapper _mapper; 
         private readonly ApplicationDbContext _context;
         private readonly UserManager<ApplicationUser> _userManager;
 
-        public GymClassesController(ApplicationDbContext context, UserManager<ApplicationUser> userManager )
+        public GymClassesController(IMapper mapper, ApplicationDbContext context, UserManager<ApplicationUser> userManager )
         {
+            _mapper = mapper; 
             _context = context;
             _userManager = userManager;
         }
@@ -28,7 +32,15 @@ namespace PassbokningsDemo.Controllers
         [AllowAnonymous]
         public async Task<IActionResult> Index()
         {
-            return View(await _context.GymClasses.ToListAsync());
+            var gymClasses = await _context.GymClasses
+                .Include(g => g.AttendingMembers)
+                .ToListAsync();
+
+            var model = _mapper.Map<IndexViewModel>(gymClasses);
+
+            return View(model); 
+
+            //return View(await _context.GymClasses.ToListAsync());
         }
 
         // GET: GymClasses/Details/5
