@@ -34,6 +34,7 @@ namespace PassbokningsDemo.Controllers
         {
             var gymClasses = await _context.GymClasses
                 .Include(g => g.AttendingMembers)
+                .Where(g=>g.StartTime > DateTime.Now)
                 .ToListAsync();
 
             var model = _mapper.Map<IndexViewModel>(gymClasses);
@@ -205,6 +206,18 @@ namespace PassbokningsDemo.Controllers
             await _context.SaveChangesAsync(); 
 
             return RedirectToAction(nameof(Index));
+        }
+
+        public async Task<IActionResult> History()
+        {
+            var gymClasses = await _context.GymClasses
+                .Include(g => g.AttendingMembers)
+                .Where(g => g.StartTime < DateTime.Now)
+                .ToListAsync();
+
+            var model = _mapper.Map<IndexViewModel>(gymClasses);
+
+            return View(model);
         }
     }
 }

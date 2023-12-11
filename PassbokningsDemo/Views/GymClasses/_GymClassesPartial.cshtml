@@ -23,20 +23,24 @@
             @Html.DisplayFor(modelItem => item.Description)
         </td>
         <td>
-            @if (User.Identity.IsAuthenticated)
+            @if(item.StartTime > DateTime.Now)
             {
-                <a asp-action="BookingToggle" asp-route-id="@item.Id" class="btn @(item.Attending ? "btn-danger" :
+                @if (User.Identity.IsAuthenticated)
+                {
+                    <a asp-action="BookingToggle" asp-route-id="@item.Id" class="btn @(item.Attending ? "btn-danger" :
                  "btn-success")">
-                 @(item.Attending ? "Cancel" : "Book")
-             </a>
-               
+                        @(item.Attending ? "Cancel" : "Book")
+                    </a>
+
+                }
+                @if (User.IsInRole("Admin"))
+                {
+                    <span>|</span>
+                    <a asp-action="Edit" asp-route-id="@item.Id">Edit</a> <span>|</span>
+                    <a asp-action="Delete" asp-route-id="@item.Id">Delete</a>
+                }
             }
-            @if (User.IsInRole("Admin"))
-            {
-                <span>|</span>
-                <a asp-action="Edit" asp-route-id="@item.Id">Edit</a> <span>|</span>
-                <a asp-action="Delete" asp-route-id="@item.Id">Delete</a>
-            }
+            
         </td>
     </tr>
 }
